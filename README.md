@@ -1,4 +1,4 @@
-# fizzbuzz-api-java
+# FizzBuzz API Java
 
 POC for dropwizard framework.
 
@@ -13,6 +13,8 @@ POC for dropwizard framework.
 $ cd <your local dir>
 $ gradle build
 ```
+
+__NOTE:__ At first time build it will download all dependencies to your machine, please wait until finished.
 
 ## Start Server
 
