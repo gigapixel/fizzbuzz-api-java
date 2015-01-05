@@ -1,26 +1,18 @@
 apply plugin: 'java'
-apply plugin: 'gradle-one-jar'
 apply plugin: 'application'
+apply plugin: 'flyway'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+
 version = '1.0'
+mainClassName = 'com.itruemart.ops.OpsApplication'
 
-mainClassName = 'sandbox.play.FizzBuzzApplication'
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
+def dropwizardVersion = '0.7.1'
+def mysqlConnectorVersion = '5.1.34'
+def databaseName = 'sandbox'
 
-    dependencies {
-        classpath 'com.github.rholder:gradle-one-jar:1.0.3'
-    }
-}
-
-project.ext {
-    dropwizardVersion = '0.7.1'
-}
 
 repositories {
     mavenCentral()
@@ -28,18 +20,44 @@ repositories {
 
 dependencies {
     compile (
+        'mysql:mysql-connector-java:' + mysqlConnectorVersion,
         'io.dropwizard:dropwizard-core:' + dropwizardVersion,
-        'io.dropwizard:dropwizard-hibernate:' + dropwizardVersion,
-        'io.dropwizard:dropwizard-migrations:' + dropwizardVersion,
+        'io.dropwizard:dropwizard-hibernate:' + dropwizardVersion
     )
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
-task oneJar(type: OneJar) {
-    mainClass = mainClassName
+buildscript {
+    repositories {
+        mavenCentral()
+    }
 
+    dependencies {
+        classpath 'mysql:mysql-connector-java:5.1.34'
+        classpath 'org.flywaydb:flyway-gradle-plugin:3.1'
+    }
 }
 
+flyway {
+    driver = 'com.mysql.jdbc.Driver'
+    url = 'jdbc:mysql://127.0.0.1/' + databaseName
+    user = 'root'
+    password = ''
+}
+
+
 run {
-    args 'server', './build/resources/main/fizzbuzz-config.yml'
+    args 'server', './build/resources/main/ops-config.yml'
+}
+
+task fatJar(type: Jar) {
+	manifest {
+        attributes 'Implementation-Title': 'Gradle Jar File Example',
+        	'Implementation-Version': version,
+        	'Main-Class': mainClassName
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+    baseName = project.name + '-standalone'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
